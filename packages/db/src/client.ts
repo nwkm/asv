@@ -1,0 +1,10 @@
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import * as schema from './schema';
+
+export function createDb(url: string, opts: { max?: number } = {}) {
+  const client = postgres(url, { max: opts.max ?? 10, onnotice: () => {} });
+  const db = drizzle(client, { schema });
+  return { db, client };
+}
+export type Database = ReturnType<typeof createDb>['db'];
