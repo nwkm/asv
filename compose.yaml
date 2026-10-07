@@ -1,0 +1,69 @@
+name: asv
+
+x-api: &api
+  build:
+    context: .
+    dockerfile: apps/api/Dockerfile
+  environment: &api-env
+    DATABASE_URL: postgres://${POSTGRES_USER:-asv}:${POSTGRES_PASSWORD:-asv}@db:5432/${POSTGRES_DB:-asv}
+    BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
+    BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+    WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+    SEED_PASSWORD: ${SEED_PASSWORD:-ChangeMe123!}
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-asv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-asv}
+      POSTGRES_DB: ${POSTGRES_DB:-asv}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      retries: 20
+
+  migrate:
+    <<: *api
+    restart: 'no'
+    depends_on:
+      db: { condition: service_healthy }
+    # Migrations always run; the mock-data seed only runs on an empty database when SEED=true.
+    command:
+      [
+        'sh',
+        '-c',
+        'bun ../../packages/db/src/migrate.ts && if [ "$$SEED" = true ]; then bun src/seed.ts; fi',
+      ]
+    environment:
+      <<: *api-env
+      SEED: ${SEED:-true}
+
+  api:
+    <<: *api
+    restart: unless-stopped
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    environment:
+      <<: *api-env
+      API_PORT: 4000
+    ports: ['4000:4000']
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        API_URL: http://api:4000
+        NEXT_PUBLIC_CURRENCY: ${NEXT_PUBLIC_CURRENCY:-EUR}
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+    environment:
+      API_URL: http://api:4000
+    ports: ['3000:3000']
+
+volumes:
+  pgdata:
