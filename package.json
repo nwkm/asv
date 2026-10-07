@@ -1,0 +1,29 @@
+{
+  "name": "asv",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter @asv/api --filter @asv/web dev",
+    "dev:api": "bun run --filter @asv/api dev",
+    "dev:web": "bun run --filter @asv/web dev",
+    "build": "bun run --filter './apps/*' build",
+    "test": "bun run --filter '*' test",
+    "lint": "oxlint",
+    "fmt": "oxfmt .",
+    "fmt:check": "oxfmt --check .",
+    "typecheck": "bun run --filter '*' typecheck",
+    "db:generate": "bun run --filter @asv/db generate",
+    "db:migrate": "bun run --filter @asv/db migrate",
+    "db:seed": "bun run --filter @asv/api seed",
+    "db:up": "docker compose -f compose.dev.yaml up -d --wait"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
+    "typescript": "^5.9.0"
+  }
+}

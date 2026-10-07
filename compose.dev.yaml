@@ -1,0 +1,16 @@
+name: asv-dev
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: asv
+      POSTGRES_PASSWORD: asv
+      POSTGRES_DB: asv
+    ports: ['5432:5432']
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U asv']
+      interval: 3s
+      retries: 20
+volumes:
+  pgdata:

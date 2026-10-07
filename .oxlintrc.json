@@ -1,0 +1,18 @@
+{
+  "plugins": ["typescript", "react", "nextjs", "import", "unicorn"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "no-unmodified-loop-condition": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "import/no-unassigned-import": "off",
+    "typescript/no-extraneous-class": "off",
+    "unicorn/no-array-sort": "off",
+    "unicorn/no-array-reverse": "off",
+    "import/no-named-as-default": "off"
+  },
+  "ignorePatterns": ["**/dist", "**/.next", "**/node_modules", "**/drizzle", "**/next-env.d.ts"]
+}
